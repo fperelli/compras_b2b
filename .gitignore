@@ -1,0 +1,19 @@
+# Ambientes virtuales
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Variables de entorno
+.env
+
+# ChromaDB
+chroma_db/
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema
+.DS_Store

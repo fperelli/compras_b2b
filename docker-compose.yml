@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  agent:
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    container_name: b2b-agent
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY} # Will read from host .env or export
+      - HOST=0.0.0.0
+      - HF_HOME=/app/.cache
+    volumes:
+      # Mount the local vector DB to prevent losing RAG knowledge on restart
+      - ./agent/chroma_db:/app/chroma_db
+      # Mount the specs folder so you can hot-load text files without rebuilding
+      - ./agent/spec:/app/spec
+      # Cache huggingface models so it doesn't download MiniLM every time
+      - ./agent/.cache:/app/.cache
+    networks:
+      - b2b-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: b2b-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Tell the Next.js container how to route /api/negotiations internally using Docker DNS
+      - BACKEND_API_URL=http://agent:8000/api/v1
+    depends_on:
+      - agent
+    networks:
+      - b2b-network
+
+networks:
+  b2b-network:
+    driver: bridge
