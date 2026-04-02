@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surface hierarchy - Lumina Ledger Dark Mode */
+  --color-background: #101416;
+  --color-surface: #101416;
+  --color-surface-dim: #101416;
+  --color-surface-bright: #363a3c;
+  
+  /* The "No-Line" Sectioning Hierarchy */
+  --color-surface-container: #1c2022;
+  --color-surface-container-low: #181c1e;
+  --color-surface-container-lowest: #0b0f10;
+  --color-surface-container-high: #262b2c;
+  --color-surface-container-highest: #313537;
+
+  /* Brand Colors - Soft AI Blue */
+  --color-primary: #adc7f7;
+  --color-primary-container: #1a365d;
+  --color-on-primary: #133057;
+  --color-on-primary-container: #86a0cd;
+  
+  --color-secondary: #8ecdff;
+  --color-secondary-container: #0071a7;
+  --color-on-secondary: #00344f;
+  
+  --color-tertiary: #f2bc82;
+  --color-tertiary-container: #4f2e00;
+  
+  /* Functional Colors */
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-outline: #8e9099;
+  --color-outline-variant: #43474e;
+
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Utilities */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  --shadow-premium: 0px 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+:root {
+  --background: #101416;
+  --foreground: #e0e3e5;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Intelligent Architect Utilities */
+.glass {
+  background: rgba(49, 53, 55, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.surface-card {
+  background: var(--color-surface-container-low);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease-in-out;
+}
+
+.surface-card:hover {
+  background: var(--color-surface-container);
+  transform: translateY(-2px);
+}
