@@ -1,29 +1,40 @@
-FROM python:3.13-slim
+# --- Stage 1: Builder ---
+FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Install system dependencies needed for compiling C extensions (like hnswlib/chromadb)
+# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
-# Upgrade pip and install requirements
+# Install dependencies into a wheels directory or site-packages
+# Force CPU version of torch to save ~1.5GB of CUDA binaries
 RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code
+# --- Stage 2: Production ---
+FROM python:3.12-slim AS runner
+
+WORKDIR /app
+
+# Copy only the installed python packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy source code
 COPY ./src ./src
 
-# Create default directories if they don't exist
+# Create necessary directories
 RUN mkdir -p chroma_db spec
 
-# Set the python path so modules resolve properly
 ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
 
-# Expose FastAPI port
 EXPOSE 8000
 
-# Run Uvicorn in production mode
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]

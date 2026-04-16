@@ -17,3 +17,7 @@ chroma_db/
 
 # Sistema
 .DS_Store
+
+agent/.cache/
+mongo_data/
+ollama_data/

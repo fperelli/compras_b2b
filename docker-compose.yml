@@ -1,6 +1,16 @@
 version: '3.8'
 
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: b2b-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/root/.ollama
+    networks:
+      - b2b-network
+
   agent:
     build:
       context: ./agent
@@ -9,9 +19,14 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY} # Will read from host .env or export
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama} # Defaults to ollama, can be set to 'gemini'
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_MODEL=phi3
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY} # Will read from host .env if gemini is chosen
       - HOST=0.0.0.0
       - HF_HOME=/app/.cache
+    depends_on:
+      - ollama
     volumes:
       # Mount the local vector DB to prevent losing RAG knowledge on restart
       - ./agent/chroma_db:/app/chroma_db
@@ -32,8 +47,20 @@ services:
     environment:
       # Tell the Next.js container how to route /api/negotiations internally using Docker DNS
       - BACKEND_API_URL=http://agent:8000/api/v1
+      - MONGODB_URI=mongodb://mongo:27017/b2b_saas
     depends_on:
       - agent
+      - mongo
+    networks:
+      - b2b-network
+
+  mongo:
+    image: mongo:latest
+    container_name: b2b-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo_data:/data/db
     networks:
       - b2b-network
 

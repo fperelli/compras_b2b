@@ -7,6 +7,7 @@ from typing import Optional, List
 
 class PurchaseRequest(BaseModel):
     request_id: str = Field(..., description="ID de la solicitud")
+    tenant_id: str = Field("tenant_default", description="Identificador único del sub-cliente SaaS")
     supplier_id: str = Field(..., description="ID del proveedor")
     supplier_name: str = Field(..., description="Nombre del proveedor")
     category: str = Field(..., description="Categoría de la compra")
@@ -20,6 +21,7 @@ class PurchaseRequest(BaseModel):
 
 class CounterOfferRequest(BaseModel):
     request_id: str
+    tenant_id: str = "tenant_default"
     supplier_id: str
     supplier_name: str
     category: str
@@ -38,6 +40,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     request_id: str
+    tenant_id: str = "tenant_default"
     history: List[ChatMessage]
     user_context: Optional[dict] = None
 

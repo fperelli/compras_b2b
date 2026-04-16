@@ -5,17 +5,12 @@ import { useRouter } from 'next/navigation';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const stats = [
-    { label: 'Active Negotiations', value: '12', trend: '+2', color: 'primary' },
-    { label: 'Avg. Saving', value: '14.2%', trend: '+0.8%', color: 'secondary' },
-    { label: 'Pending Approvals', value: '5', trend: '!', color: 'error' },
-    { label: 'Market Comparison', value: '-3.5%', trend: 'optimal', color: 'primary' },
-  ];
-
+  const [stats, setStats] = useState<any[]>([]);
   const [negotiations, setNegotiations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Fetch negotiations
     fetch('/api/negotiations')
       .then(res => res.json())
       .then(data => {
@@ -26,6 +21,23 @@ const DashboardPage = () => {
         console.error('Error fetching negotiations:', err);
         setLoading(false);
       });
+
+    // Fetch analytics KPIs for dashboard header
+    fetch('/api/analytics')
+      .then(res => res.json())
+      .then(data => {
+        if(data && data.kpis) {
+           // Mapping analytics data to the shapes the dashboard expects
+           const mappedStats = data.kpis.map((kpi: any) => ({
+              label: kpi.metric,
+              value: kpi.value,
+              trend: kpi.target, // using target as a trend mock
+              color: kpi.color
+           }));
+           setStats(mappedStats);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   return (

@@ -2,19 +2,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation, LanguageToggle } from '@/lib/i18n';
 
 const Sidebar = () => {
   const pathname = usePathname();
-  
-  // Don't show sidebar on landing page
-  if (pathname === '/') return null;
+  const { t } = useTranslation();
+
+  // Don't show sidebar on landing page or login
+  if (pathname === '/' || pathname === '/login') return null;
 
   const menuItems = [
-    { name: 'Dashboard', icon: '📊', path: '/dashboard' },
-    { name: 'Negotiations', icon: '📝', path: '/negotiations' },
-    { name: 'Suppliers', icon: '🏢', path: '/suppliers' },
-    { name: 'Analytics', icon: '📈', path: '/analytics' },
-    { name: 'Settings', icon: '⚙️', path: '/settings' },
+    { key: 'nav.dashboard', icon: '📊', path: '/dashboard' },
+    { key: 'nav.negotiations', icon: '📝', path: '/negotiations' },
+    { key: 'nav.suppliers', icon: '🏢', path: '/suppliers' },
+    { key: 'nav.analytics', icon: '📈', path: '/analytics' },
+    { key: 'nav.settings', icon: '⚙️', path: '/settings' },
+    { key: 'nav.docs', icon: '📖', path: '/docs' },
   ];
 
   return (
@@ -30,31 +33,36 @@ const Sidebar = () => {
           </h1>
         </Link>
       </div>
-      
+
       {/* Navigation */}
       <nav className="flex-1 px-4 space-y-2">
         {menuItems.map((item) => {
-          const isActive = pathname === item.path;
+          const isActive = pathname === item.path || pathname.startsWith(item.path + '/');
           return (
             <Link
-              key={item.name}
+              key={item.path}
               href={item.path}
               className={`
                 flex items-center gap-4 px-6 py-3 text-sm font-medium rounded-sm transition-all duration-200
-                ${isActive 
-                  ? 'bg-primary/10 text-primary border-l-2 border-primary' 
+                ${isActive
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary'
                   : 'text-foreground/40 hover:bg-white/5 hover:text-foreground/80'}
               `}
             >
-              <span className={`text-lg ${isActive ? 'opacity-100' : 'opacity-40 grayscale group-hover:grayscale-0'}`}>
+              <span className={`text-lg ${isActive ? 'opacity-100' : 'opacity-40'}`}>
                 {item.icon}
               </span>
-              {item.name}
+              {t(item.key)}
             </Link>
           );
         })}
       </nav>
-      
+
+      {/* Language Toggle */}
+      <div className="px-6 pb-2">
+        <LanguageToggle className="w-full justify-center" />
+      </div>
+
       {/* User / Profile Section */}
       <div className="p-6 bg-surface-container-high/30">
         <div className="flex items-center gap-4 px-4 py-3 surface-card cursor-pointer">
@@ -63,7 +71,7 @@ const Sidebar = () => {
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-bold text-foreground font-display leading-none mb-1">John Doe</span>
-            <span className="text-[10px] text-foreground/40 uppercase tracking-widest font-bold">Chief Procurement</span>
+            <span className="text-[10px] text-foreground/40 uppercase tracking-widest font-bold">{t('nav.role')}</span>
           </div>
         </div>
       </div>
