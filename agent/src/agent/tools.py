@@ -19,11 +19,11 @@ def get_supplier_tools(vector_store) -> list:
     def _query_rag(query: str) -> str:
         """Helper internal para realizar búsquedas en el almacén vectorial."""
         if not vector_store:
-            return "Aviso: Almacén vectorial RAG no conectado. Operando en base a conocimiento general y simulación."
+            return "DATA_NOT_FOUND: Almacén vectorial RAG no conectado o vacío. Prohibido inventar datos."
         
         docs = vector_store.similarity_search(query, k=2)
         if not docs:
-            return "No se encontró información relevante en los manuales de especificación corporativos."
+            return "DATA_NOT_FOUND: No se encontró información en el RAG del cliente. Fija postura como 'Falta política corporativa' y no inventes."
         
         # Combinamos el contenido de los documentos encontrados
         context = "\n---\n".join([d.page_content for d in docs])

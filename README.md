@@ -68,9 +68,36 @@ GOOGLE_API_KEY=tu_api_key_aqui
 
 ---
 
-## 💻 Ejecución y Pruebas
+## 🐳 Entorno Docker y Modelos Locales (Ollama)
 
-Tienes dos formas principales de correr y probar el agente:
+La arquitectura soporta un enfoque 100% "On-Premise", instanciando **Ollama** por defecto para mantener los datos de negociación totalmente privados, así como un stack manejado por Docker.
+
+### Iniciar con Docker Compose
+
+Levanta el Frontend (Next.js), Backend (FastAPI) y el proveedor de LLM Local (Ollama) en un solo comando:
+```powershell
+docker-compose up --build -d
+```
+
+### Proveedor IA: Ollama (Por Defecto)
+El entorno está configurado para usar `ollama` y el modelo `llama3`.
+La **primera vez que ejecutes el sistema**, necesitarás descargar el modelo localmente en el contenedor. Ejecuta en tu terminal:
+```powershell
+docker exec -it b2b-ollama ollama run llama3
+```
+
+### Proveedor IA: Gemini (Alternativa)
+Si prefieres velocidad y usar Gemini desde Google, edita tu archivo oculto `.env` dentro o en la variable expuesta del compose:
+```env
+LLM_PROVIDER=gemini
+GOOGLE_API_KEY=tu_api_key_aqui
+```
+
+---
+
+## 💻 Ejecución y Pruebas (Modo Script)
+
+Si prefieres levantar todo por tu cuenta sin Docker, tienes dos formas principales de correr y probar el agente:
 
 ### 1. Test vía CLI interactivo (main.py)
 

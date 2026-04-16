@@ -12,6 +12,7 @@ export async function POST(request: Request) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         request_id: body.request_id,
+        tenant_id: 'tenant_default', // Multi-tenant binding
         history: body.history // Expecting list of {role, content}
       }),
     });

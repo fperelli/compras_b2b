@@ -1,27 +1,29 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import connectToDatabase from '@/lib/mongodb';
+import Negotiation from '@/models/Negotiation';
+import { seedIfEmpty } from '@/lib/seed';
 
 const BACKEND_URL = process.env.BACKEND_API_URL || 'http://localhost:8000/api/v1';
-
-async function getNegotiationsData() {
-  const jsonDirectory = path.join(process.cwd(), 'src/data');
-  const fileContents = await fs.readFile(jsonDirectory + '/negotiations.json', 'utf8');
-  return JSON.parse(fileContents);
-}
+const DEFAULT_TENANT = 'tenant_default';
 
 export async function GET(request: Request) {
   try {
+    await connectToDatabase();
+    await seedIfEmpty();
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const allData = await getNegotiationsData();
 
     if (id) {
-      const single = allData.find((n: any) => n.id === id);
-      return single 
-        ? NextResponse.json(single) 
+      const single = await Negotiation.findOne({ id, tenant_id: DEFAULT_TENANT }).lean();
+      return single
+        ? NextResponse.json(single)
         : NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
+
+    const allData = await Negotiation.find({ tenant_id: DEFAULT_TENANT })
+      .sort({ created_at: -1 })
+      .lean();
 
     return NextResponse.json(allData);
   } catch (error) {
@@ -32,11 +34,15 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    await connectToDatabase();
     const body = await request.json();
-    
-    // Preparation for FastAPI (aligning with PurchaseRequest schema)
+
+    const negId = body.id || `NEG-${Date.now()}`;
+
+    // 1. Preparation for FastAPI (aligning with PurchaseRequest schema)
     const payload = {
-      request_id: body.id || `REQ-${Date.now()}`,
+      request_id: negId,
+      tenant_id: DEFAULT_TENANT,
       supplier_id: body.supplier_id || 'SUP-001',
       supplier_name: body.supplier || 'Unknown Supplier',
       category: body.category || 'general',
@@ -48,31 +54,77 @@ export async function POST(request: Request) {
       restrictions: body.restrictions || ''
     };
 
-    const response = await fetch(`${BACKEND_URL}/negotiate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json({ error: errorData.detail || 'Backend error' }, { status: response.status });
+    // 2. Call the AI Agent
+    let aiOutput = '';
+    try {
+      const response = await fetch(`${BACKEND_URL}/negotiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        aiOutput = data.output || '';
+      }
+    } catch (agentError) {
+      console.warn('⚠️ Agent unavailable, saving negotiation without AI output:', agentError);
     }
 
-    const data = await response.json();
-    // Wrap the agent's 'output' into the expected frontend structure
-    return NextResponse.json({
-      id: data.request_id,
+    // 3. Persist to MongoDB (Upsert if exists)
+    const negData = {
+      id: negId,
+      tenant_id: DEFAULT_TENANT,
+      supplier_id: payload.supplier_id,
       supplier: payload.supplier_name,
       category: payload.category,
-      stage: 'AI Analysis Complete',
+      stage: aiOutput ? 'AI Analysis Complete' : 'Pending AI',
       risk: 'Calculated',
       saving: 'Pending',
-      ai_output: data.output // The raw markdown from Gemini
-    }, { status: 201 });
+      volume: payload.volume,
+      target_price: payload.target_price,
+      max_price: payload.max_price,
+      payment_terms: payload.payment_terms,
+      required_date: payload.required_date,
+      restrictions: payload.restrictions,
+      ai_output: aiOutput
+    };
+
+    const newNeg = await Negotiation.findOneAndUpdate(
+      { id: negId, tenant_id: DEFAULT_TENANT },
+      { $set: negData },
+      { new: true, upsert: true }
+    );
+
+    return NextResponse.json(newNeg, { status: 201 });
 
   } catch (error) {
-    console.error('API Route Error:', error);
+    console.error('API POST Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    await connectToDatabase();
+    const body = await request.json();
+
+    if (!body.id || !body.status) {
+      return NextResponse.json({ error: 'Missing id or status' }, { status: 400 });
+    }
+
+    const updated = await Negotiation.findOneAndUpdate(
+      { id: body.id, tenant_id: DEFAULT_TENANT },
+      { stage: body.status, updated_at: new Date() },
+      { new: true }
+    ).lean();
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Negotiation not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, status: body.status });
+  } catch (error) {
+    console.error('PUT API Error:', error);
+    return NextResponse.json({ error: 'Failed to update negotiation' }, { status: 500 });
   }
 }
