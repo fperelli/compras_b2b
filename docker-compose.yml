@@ -21,8 +21,7 @@ services:
     environment:
       - LLM_PROVIDER=${LLM_PROVIDER:-ollama} # Defaults to ollama, can be set to 'gemini'
       - OLLAMA_BASE_URL=http://ollama:11434
-      - OLLAMA_MODEL=phi3
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY} # Will read from host .env if gemini is chosen
+      - OLLAMA_MODEL=kimi-k2.6
       - HOST=0.0.0.0
       - HF_HOME=/app/.cache
     depends_on:

@@ -34,31 +34,33 @@ from langchain_core.language_models.chat_models import BaseChatModel
 def get_llm() -> BaseChatModel:
     """
     Inicializa y devuelve el modelo de lenguaje elegido según LLM_PROVIDER.
+    Por instrucciones del proyecto, el modelo por defecto es 'kimi-k2.6' (vía Ollama).
+    El uso de Gemini y Llama3/Phi3 está desactivado.
     """
     provider = os.environ.get("LLM_PROVIDER", "ollama").lower()
     
     if provider == "gemini":
-        api_key = os.environ.get("GOOGLE_API_KEY")
-        if not api_key:
-            raise ValueError(
-                "GOOGLE_API_KEY no encontrada. "
-                "Asegúrate de configurarla en el entorno para usar Gemini."
-            )
-        return ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=api_key,
-            temperature=0.1,
+        raise ValueError(
+            "El uso de Gemini ha sido desactivado. "
+            "Por favor, configure LLM_PROVIDER=ollama y OLLAMA_MODEL=kimi-k2.6."
         )
-    else:
-        # Default to Ollama via dedicated package that supports tool binding
-        from langchain_ollama import ChatOllama
-        base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        model = os.environ.get("OLLAMA_MODEL", "llama3")
-        return ChatOllama(
-            model=model, 
-            base_url=base_url,
-            temperature=0.1
+    
+    # Default to Ollama via dedicated package that supports tool binding
+    from langchain_ollama import ChatOllama
+    base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+    model = os.environ.get("OLLAMA_MODEL", "kimi-k2.6")
+    
+    if model in ["llama3", "phi3"]:
+        raise ValueError(
+            f"El modelo '{model}' ha sido desactivado. "
+            "Por favor, use el modelo por defecto 'kimi-k2.6'."
         )
+        
+    return ChatOllama(
+        model=model, 
+        base_url=base_url,
+        temperature=0.1
+    )
 
 
 def get_negotiation_service(tenant_id: str) -> NegotiationService:

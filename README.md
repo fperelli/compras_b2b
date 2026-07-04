@@ -1,6 +1,6 @@
 # B2B Procurement Negotiation Agent
 
-Agente de negociación impulsado por Inteligencia Artificial (Google Gemini 2.0 Flash) y orquestado mediante **LangGraph**. El sistema fue diseñado para asistir a equipos de compras (Procurement) en procesos B2B, optimizando costos totales de adquisición (TCO) mientras mantiene trazabilidad y cumplimiento de políticas internas.
+Agente de negociación impulsado por Inteligencia Artificial (Ollama kimi-k2.6) y orquestado mediante **LangGraph**. El sistema fue diseñado para asistir a equipos de compras (Procurement) en procesos B2B, optimizando costos totales de adquisición (TCO) mientras mantiene trazabilidad y cumplimiento de políticas internas.
 
 ## 🌟 Características Principales
 
@@ -80,18 +80,14 @@ docker-compose up --build -d
 ```
 
 ### Proveedor IA: Ollama (Por Defecto)
-El entorno está configurado para usar `ollama` y el modelo `llama3`.
+El entorno está configurado para usar `ollama` y el modelo `kimi-k2.6`.
 La **primera vez que ejecutes el sistema**, necesitarás descargar el modelo localmente en el contenedor. Ejecuta en tu terminal:
 ```powershell
-docker exec -it b2b-ollama ollama run llama3
+docker exec -it b2b-ollama ollama run kimi-k2.6
 ```
 
-### Proveedor IA: Gemini (Alternativa)
-Si prefieres velocidad y usar Gemini desde Google, edita tu archivo oculto `.env` dentro o en la variable expuesta del compose:
-```env
-LLM_PROVIDER=gemini
-GOOGLE_API_KEY=tu_api_key_aqui
-```
+> [!NOTE]
+> Por políticas del proyecto, el uso de Gemini, Llama3 y Phi3 ha sido desactivado. Asegúrate de configurar `OLLAMA_MODEL=kimi-k2.6`.
 
 ---
 
@@ -136,10 +132,10 @@ Cuando envías una consulta, el agente responde respetando siempre este formato 
 3. **Oferta propuesta**: Límites en el cálculo financiero extraído de los budgets y benchmarks combinados.
 4. **Riesgos detectados**: Análisis del SLA del proveedor vs el contexto operativo.
 5. **Recomendación para aprobación humana**: Qué debe asegurar el gerente visualmente antes de dar play.
-6. **Próximo mensaje**: Un boceto del email amigable y ejecutivo, redactado por Gemini, listo para copiar y pegar.
+6. **Próximo mensaje**: Un boceto del email amigable y ejecutivo, redactado por el modelo de IA, listo para copiar y pegar.
 
 ---
 
-## 🔒 Privacidad y Rate Limit (API)
+## 🔒 Privacidad y Rendimiento Local
 
-Al usar la versión gratuita, **Gemini Flash** restringe las llamadas muy rápidas (Request Per Minute). Debido a que *LangGraph* usa múltiples saltos (llamar a un tool, devolver datos al modelo, iterar a otra de las 4 tools), podrías chocar con un Error `429 Too Many Requests`. Si esto sucede, permite enfriar a la API por ~45 segundos y reitenta.
+Al utilizar un modelo local como **kimi-k2.6** a través de Ollama, todos los datos de negociación se procesan de forma privada y on-premise en tu propio servidor. No hay límites de llamadas por minuto (rate limits) externos ni dependencias de APIs en la nube.

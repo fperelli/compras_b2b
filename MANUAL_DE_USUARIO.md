@@ -57,7 +57,7 @@ El chat permite dialogar en tiempo real con el agente de IA ajustando la estrate
 "El proveedor dice que tiene problemas de stock. Como afecta a la negociacion?"
 ```
 
-> Con modelos Ollama locales (Llama3), el chat responde estratégicamente aunque no ejecute herramientas RAG en tiempo real. Para máxima potencia, usa Gemini en producción configurando `LLM_PROVIDER=gemini`.
+> Con modelos Ollama locales (**kimi-k2.6**), el chat responde estratégicamente procesando todas las interacciones de forma local y privada. Por políticas del proyecto, el uso de Gemini y Llama3/Phi3 ha sido desactivado.
 
 ---
 
@@ -95,10 +95,9 @@ El sistema detecta automáticamente el idioma del navegador pero permite el camb
 
 | Variable | Descripción | Default |
 |----------|-------------|---------|
-| `LLM_PROVIDER` | `ollama` (local) o `gemini` (producción) | `ollama` |
-| `OLLAMA_MODEL` | Nombre del modelo en Ollama | `llama3` |
+| `LLM_PROVIDER` | `ollama` (local) - Gemini está desactivado | `ollama` |
+| `OLLAMA_MODEL` | Nombre del modelo en Ollama | `kimi-k2.6` |
 | `OLLAMA_BASE_URL` | URL interna de Docker para Ollama | `http://ollama:11434` |
-| `GOOGLE_API_KEY` | API Key de Google AI (para Gemini) | — |
 | `MONGODB_URI` | Cadena de conexión MongoDB | `mongodb://mongo:27017` |
 
 ---
@@ -115,13 +114,13 @@ El sistema detecta automáticamente el idioma del navegador pero permite el camb
 ## Solución de Problemas (Troubleshooting)
 
 ### El chat "no responde" o se queda en "Ingesta..."
-1. **Carga de Modelo**: Si usas CPU, Llama 3 tarda ~2 minutos en cargar. Verifica con:
+1. **Carga de Modelo**: Si usas CPU, el modelo kimi-k2.6 puede tardar unos minutos en cargar por primera vez. Verifica con:
    ```bash
    docker logs -f b2b-ollama
    ```
 2. **Modelo no encontrado**: Asegúrate de haber bajado el modelo correcto:
    ```bash
-   docker exec -it b2b-ollama ollama pull llama3
+   docker exec -it b2b-ollama ollama pull kimi-k2.6
    ```
 
 ### Errores de Compilación TypeScript
